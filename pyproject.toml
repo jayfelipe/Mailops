@@ -3,7 +3,7 @@ name = "mailops"
 version = "0.1.0"
 description = "Email deliverability checks and mail ops tooling"
 requires-python = ">=3.12"
-dependencies = ["dnspython>=2.6"]
+dependencies = ["dnspython>=2.6", "psycopg[binary]>=3.2"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff"]
@@ -14,3 +14,6 @@ build-backend = "setuptools.build_meta"
 
 [project.scripts]
 mailops = "mailops.cli:main"
+
+[tool.setuptools]
+packages = ["mailops"]
