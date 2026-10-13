@@ -11,3 +11,6 @@ dev = ["pytest>=8", "ruff"]
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
+
+[project.scripts]
+mailops = "mailops.cli:main"
