@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mailops
+      POSTGRES_PASSWORD: mailops
+      POSTGRES_DB: mailops
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mailops"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "8025:8025"   # web UI
+      - "1025:1025"   # SMTP
+
+volumes:
+  pgdata:
