@@ -26,7 +26,8 @@ services:
     ports:
       - "8000:8000"
     environment:
-      MAILOPS_DSN: postgresql://mailops:mailops@db:5432/mailops
+      MAILOPS_DSN: "postgresql://mailops:mailops@db:5432/mailops"
+      PYTHONUNBUFFERED: "1"
     depends_on:
       db:
         condition: service_healthy
@@ -35,8 +36,22 @@ services:
     build: .
     command: ["python", "-m", "mailops.worker"]
     environment:
-      MAILOPS_DSN: postgresql://mailops:mailops@db:5432/mailops
-      MAILOPS_SMTP_HOST: mailpit
+      MAILOPS_DSN: "postgresql://mailops:mailops@db:5432/mailops"
+      MAILOPS_SMTP_HOST: "mailpit"
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  monitor:
+    build: .
+    command: ["python", "-m", "mailops.monitor"]
+    environment:
+      MAILOPS_DSN: "postgresql://mailops:mailops@db:5432/mailops"
+      MAILOPS_DISCORD_WEBHOOK: "${MAILOPS_DISCORD_WEBHOOK:-}"
+      PYTHONUNBUFFERED: "1"
     depends_on:
       db:
         condition: service_healthy
