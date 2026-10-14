@@ -27,12 +27,15 @@ def valid_email(email: str) -> bool:
 
 
 def welcome_job(name: str | None) -> tuple[str, str]:
-    who = name or "por ahi"
-    return (
-        f"bienvenido, {who}",
-        "gracias por registrarte. este correo lo entrego el worker de mailops, "
-        "pasando por la cola de jobs.",
+    # FIX 1 (ISC004): copy en inglés + la concatenación implícita ahora
+    # vive entre paréntesis en una asignación con nombre, no suelta en la tupla
+    who = name or "there"
+    subject = f"welcome, {who}"
+    body = (
+        "thanks for signing up. this mail was delivered by the mailops "
+        "worker through the job queue."
     )
+    return subject, body
 
 
 def connect() -> psycopg.Connection:
@@ -48,18 +51,23 @@ def create_lead(lead: LeadIn):
 
     subject, body = welcome_job(lead.name)
     try:
-        with connect() as conn:
-            with conn.transaction():
-                # lead + welcome job in ONE transaction: either both exist
-                # or neither. A lead with no welcome mail is a bug
-                row = conn.execute(
-                    "insert into leads (email, name) values (%s, %s) returning id",
-                    (lead.email, lead.name),
-                ).fetchone()
-                conn.execute(
-                    "insert into email_jobs (to_email, subject, body) values (%s, %s, %s)",
-                    (lead.email, subject, body),
-                )
+        # FIX 2 (SIM117): los dos `with` anidados se vuelven uno solo.
+        # Antes era:
+        #     with connect() as conn:
+        #         with conn.transaction():
+        #             ...código con doble indentación...
+        # Ahora: misma apertura de conexión + transacción, una sola indentación
+        with connect() as conn, conn.transaction():
+            # lead + welcome job in ONE transaction: either both exist
+            # or neither. A lead with no welcome mail is a bug
+            row = conn.execute(
+                "insert into leads (email, name) values (%s, %s) returning id",
+                (lead.email, lead.name),
+            ).fetchone()
+            conn.execute(
+                "insert into email_jobs (to_email, subject, body) values (%s, %s, %s)",
+                (lead.email, subject, body),
+            )
     except psycopg.errors.UniqueViolation:
         raise HTTPException(409, detail="email already registered")
 

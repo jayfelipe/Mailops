@@ -10,7 +10,7 @@ def test_valid_email():
 
 def test_welcome_job_defaults():
     subject, body = api.welcome_job(None)
-    assert "por ahi" in subject
+    assert "there" in subject
     assert "worker" in body
 
 
