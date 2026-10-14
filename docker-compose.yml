@@ -6,11 +6,11 @@ services:
       POSTGRES_PASSWORD: mailops
       POSTGRES_DB: mailops
     ports:
-      - "5433:5432"   
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mailops"]
+      test: ["CMD-SHELL", "pg_isready -U mailops -d mailops"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -18,8 +18,28 @@ services:
   mailpit:
     image: axllent/mailpit
     ports:
-      - "8025:8025"   # web UI
-      - "1025:1025"   # SMTP
+      - "8025:8025"
+      - "1025:1025"
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      MAILOPS_DSN: postgresql://mailops:mailops@db:5432/mailops
+    depends_on:
+      db:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: ["python", "-m", "mailops.worker"]
+    environment:
+      MAILOPS_DSN: postgresql://mailops:mailops@db:5432/mailops
+      MAILOPS_SMTP_HOST: mailpit
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:
