@@ -106,7 +106,7 @@ sequenceDiagram
 | **GitHub Actions** | CI: `ruff` + `pytest` on every push |
 | **Discord webhooks** | Alerting |
 
-## 🚀 Quickstart
+## Quickstart
 
 ```bash
 # 1. Start the full stack
